@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 struct FiniteField {
     num: usize,
     prime: usize,
@@ -13,21 +13,9 @@ impl FiniteField {
     }
 }
 
-impl PartialEq<Self> for FiniteField {
-    fn eq(&self, other: &Self) -> bool {
-        self.num == other.num && self.prime == other.prime
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use crate::FiniteField;
-
-    #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
-    }
 
     #[test]
     fn initialize_field_element_works() {
