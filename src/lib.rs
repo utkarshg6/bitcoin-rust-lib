@@ -1,4 +1,4 @@
-
+#[derive(Debug)]
 struct FiniteField {
     num: usize,
     prime: usize,
@@ -18,9 +18,6 @@ impl PartialEq<Self> for FiniteField {
         self.num == other.num && self.prime == other.prime
     }
 }
-
-
-
 
 #[cfg(test)]
 mod tests {
