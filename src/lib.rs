@@ -33,7 +33,7 @@ mod tests {
 
     #[test]
     #[should_panic(expected = "Num 5 not in field range 0 to 5")]
-    fn intiializing_field_panics_if_num_is_greater_than_or_equal_to_prime() {
+    fn initializing_field_panics_if_num_is_greater_than_or_equal_to_prime() {
         let _subject = FiniteField::new(5, 5);
     }
 }
