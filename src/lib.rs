@@ -1,4 +1,5 @@
 use std::fmt::{Display, Formatter};
+use std::ops::Add;
 
 #[derive(Debug, PartialEq)]
 struct FiniteField {
@@ -22,6 +23,22 @@ impl FiniteField {
 impl Display for FiniteField {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "FieldElement_{}({})", self.prime, self.num)
+    }
+}
+
+
+impl Add for FiniteField {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        if self.prime != rhs.prime {
+            panic!("Cannot add two numbers in different fields {} and {}.", self.prime, rhs.prime);
+        }
+
+        FiniteField::new(
+            (self.num + rhs.num) % self.prime,
+            self.prime
+        )
     }
 }
 
@@ -52,5 +69,39 @@ mod tests {
         let subject = format!("{}", field_element);
 
         assert_eq!(&subject, "FieldElement_5(3)")
+    }
+
+    #[test]
+    fn field_elements_can_be_added() {
+        let a = FiniteField::new(1, 5);
+        let b = FiniteField::new(2, 5);
+
+        let result = a + b;
+
+        let expected = FiniteField::new(3, 5);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn field_elements_with_sum_greater_than_range_can_be_added() {
+        let a = FiniteField::new(2, 5);
+        let b = FiniteField::new(4, 5);
+
+        let result = a + b;
+
+        let expected = FiniteField::new(1, 5);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    #[should_panic(expected="Cannot add two numbers in different fields 5 and 7.")]
+    fn field_elements_of_different_fields_can_not_be_added() {
+        let a = FiniteField::new(1, 5);
+        let b = FiniteField::new(2, 7);
+
+        let result = a + b;
+
+        let expected = FiniteField::new(3, 5);
+        assert_eq!(result, expected);
     }
 }
