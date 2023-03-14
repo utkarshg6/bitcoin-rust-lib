@@ -1,5 +1,5 @@
 use std::fmt::{Display, Formatter};
-use std::ops::Add;
+use std::ops::{Add, Sub};
 
 #[derive(Debug, PartialEq)]
 struct FiniteField {
@@ -37,6 +37,26 @@ impl Add for FiniteField {
 
         FiniteField::new(
             (self.num + rhs.num) % self.prime,
+            self.prime
+        )
+    }
+}
+
+impl Sub for FiniteField {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        if self.prime != rhs.prime {
+            panic!("Cannot subtract two numbers in different fields {} and {}.", self.prime, rhs.prime);
+        }
+
+        let a_minus_b = match self.num > rhs.num {
+            true => self.num - rhs.num,
+            false => self.prime + self.num - rhs.num // p - n = p + (a - b) = p + a - b
+        };
+
+        FiniteField::new(
+            a_minus_b % self.prime,
             self.prime
         )
     }
@@ -99,9 +119,36 @@ mod tests {
         let a = FiniteField::new(1, 5);
         let b = FiniteField::new(2, 7);
 
-        let result = a + b;
+        let _result = a + b;
+    }
 
-        let expected = FiniteField::new(3, 5);
+    #[test]
+    fn field_elements_can_be_subtracted() {
+        let a = FiniteField::new(3, 5);
+        let b = FiniteField::new(2, 5);
+
+        let result = a - b;
+
+        let expected = FiniteField::new(1, 5);
+    }
+
+    #[test]
+    #[should_panic(expected="Cannot subtract two numbers in different fields 5 and 7.")]
+    fn field_elements_of_different_fields_cannot_be_subtracted() {
+        let a = FiniteField::new(2, 5);
+        let b = FiniteField::new(1, 7);
+
+        let _result = a - b;
+    }
+
+    #[test]
+    fn field_elements_with_a_negative_result_can_be_calculated() {
+        let a = FiniteField::new(2, 5);
+        let b = FiniteField::new(3, 5);
+
+        let result = a - b;
+
+        let expected = FiniteField::new(4, 5); // -1 % 5 = 4
         assert_eq!(result, expected);
     }
 }
