@@ -9,7 +9,7 @@ struct FiniteField {
 impl FiniteField {
     fn new(num: usize, prime: usize) -> Self {
         if num >= prime {
-            panic!("Num {num} not in field range 0 to {prime}");
+            panic!("Num {} not in field range 0 to {}", num, prime - 1);
         }
 
         Self {
@@ -40,9 +40,9 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "Num 5 not in field range 0 to 5")]
+    #[should_panic(expected = "Num 6 not in field range 0 to 4")]
     fn initializing_field_panics_if_num_is_greater_than_or_equal_to_prime() {
-        let _subject = FiniteField::new(5, 5);
+        let _subject = FiniteField::new(6, 5);
     }
 
     #[test]
