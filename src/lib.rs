@@ -1,5 +1,5 @@
 use std::fmt::{Display, Formatter};
-use std::ops::{Add, Sub};
+use std::ops::{Add, Mul, Sub};
 
 #[derive(Debug, PartialEq)]
 struct FiniteField {
@@ -57,6 +57,21 @@ impl Sub for FiniteField {
 
         FiniteField::new(
             a_minus_b % self.prime,
+            self.prime
+        )
+    }
+}
+
+impl Mul for FiniteField {
+    type Output = Self;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        if self.prime != rhs.prime {
+            panic!("Cannot multiply two numbers in different fields {} and {}.", self.prime, rhs.prime)
+        }
+
+        FiniteField::new(
+            (self.num * rhs.num) % self.prime,
             self.prime
         )
     }
@@ -130,6 +145,7 @@ mod tests {
         let result = a - b;
 
         let expected = FiniteField::new(1, 5);
+        assert_eq!(result, expected);
     }
 
     #[test]
@@ -149,6 +165,37 @@ mod tests {
         let result = a - b;
 
         let expected = FiniteField::new(4, 5); // -1 % 5 = 4
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn field_elements_can_be_multiplied() {
+        let a = FiniteField::new(2, 7);
+        let b = FiniteField::new(3, 7);
+
+        let result = a * b;
+
+        let expected = FiniteField::new(6, 7);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    #[should_panic(expected="Cannot multiply two numbers in different fields 5 and 7.")]
+    fn field_elements_of_different_fields_cannot_be_multiplied() {
+        let a = FiniteField::new(2, 5);
+        let b = FiniteField::new(3, 7);
+
+        let _result = a * b;
+    }
+
+    #[test]
+    fn field_elements_with_product_greater_than_range_can_be_calculated() {
+        let a = FiniteField::new(2, 5);
+        let b = FiniteField::new(3, 5);
+
+        let result = a * b;
+
+        let expected = FiniteField::new(1, 5);
         assert_eq!(result, expected);
     }
 }
