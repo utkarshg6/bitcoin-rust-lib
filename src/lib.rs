@@ -1,5 +1,5 @@
 use std::fmt::{Display, Formatter};
-use std::ops::{Add, Mul, Sub};
+use std::ops::{Add, Div, Mul, Sub};
 
 #[derive(Clone, Debug, PartialEq)]
 struct FiniteField {
@@ -9,6 +9,19 @@ struct FiniteField {
 
 impl FiniteField {
     fn new(num: usize, prime: usize) -> Self {
+        /*
+            Why fields have to have a prime power number of elements?
+
+            No matter what k you choose, as long as it’s greater than 0,
+            multiplying the entire set by k will result in the same set
+            as you started with.
+
+            Intuitively, the fact that we have a prime order results in
+            every element of a finite field being equivalent. If the
+            order of the set was a composite number, multiplying the set
+            by one of the divisors would result in a smaller set.
+         */
+
         if num >= prime {
             panic!("Num {} not in field range 0 to {}", num, prime - 1);
         }
@@ -61,7 +74,7 @@ impl Sub for FiniteField {
 
         let a_minus_b = match self.num > rhs.num {
             true => self.num - rhs.num,
-            false => self.prime + self.num - rhs.num // p - n = p + (a - b) = p + a - b
+            false => self.prime + self.num - rhs.num // -n = p - n = p + (a - b) = p + a - b
         };
 
         FiniteField::new(
@@ -83,6 +96,24 @@ impl Mul for FiniteField {
             (self.num * rhs.num) % self.prime,
             self.prime,
         )
+    }
+}
+
+impl Div for FiniteField {
+    type Output = Self;
+
+    fn div(self, rhs: Self) -> Self::Output {
+        if self.prime != rhs.prime {
+            panic!("Cannot divide two numbers in different fields {} and {}.", self.prime, rhs.prime)
+        }
+
+        // a / b = a * (1/b) = a * b^(-1)
+        // Also, b^(-1) = b^(-1) * 1 = b^(-1) * b^(p-1) = b^(p-2)
+        // a / b = a * b^(p-2)
+        let exp = (rhs.prime - 2) as u32;
+        let rhs_inverse = FiniteField::pow(rhs.clone(), exp);
+
+        self * rhs_inverse
     }
 }
 
@@ -215,6 +246,29 @@ mod tests {
         let result = FiniteField::pow(a.clone(), 3);
 
         let expected = FiniteField::new(2, 3);
-        assert_eq!(a, expected);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn field_elements_can_be_divided() {
+        // For a field of 5
+        // 2 * 3 = 6 = 6 % 5 = 1
+        // 1 / 3 = 2
+        let a = FiniteField::new(1, 5);
+        let b = FiniteField::new(3, 5);
+
+        let result = a / b;
+
+        let expected = FiniteField::new(2, 5);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    #[should_panic(expected = "Cannot divide two numbers in different fields 5 and 7.")]
+    fn field_elements_of_different_fields_cannot_be_divided() {
+        let a = FiniteField::new(2, 5);
+        let b = FiniteField::new(3, 7);
+
+        let _result = a / b;
     }
 }
