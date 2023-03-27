@@ -1,7 +1,7 @@
 use std::fmt::{Display, Formatter};
 use std::ops::{Add, Mul, Sub};
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 struct FiniteField {
     num: usize,
     prime: usize,
@@ -17,6 +17,15 @@ impl FiniteField {
             num,
             prime,
         }
+    }
+
+    fn pow(self, exp: u32) -> Self {
+        let num = usize::pow(self.num, exp);
+
+        FiniteField::new(
+            num % self.prime,
+            self.prime,
+        )
     }
 }
 
@@ -37,7 +46,7 @@ impl Add for FiniteField {
 
         FiniteField::new(
             (self.num + rhs.num) % self.prime,
-            self.prime
+            self.prime,
         )
     }
 }
@@ -57,7 +66,7 @@ impl Sub for FiniteField {
 
         FiniteField::new(
             a_minus_b % self.prime,
-            self.prime
+            self.prime,
         )
     }
 }
@@ -72,7 +81,7 @@ impl Mul for FiniteField {
 
         FiniteField::new(
             (self.num * rhs.num) % self.prime,
-            self.prime
+            self.prime,
         )
     }
 }
@@ -129,7 +138,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected="Cannot add two numbers in different fields 5 and 7.")]
+    #[should_panic(expected = "Cannot add two numbers in different fields 5 and 7.")]
     fn field_elements_of_different_fields_can_not_be_added() {
         let a = FiniteField::new(1, 5);
         let b = FiniteField::new(2, 7);
@@ -149,7 +158,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected="Cannot subtract two numbers in different fields 5 and 7.")]
+    #[should_panic(expected = "Cannot subtract two numbers in different fields 5 and 7.")]
     fn field_elements_of_different_fields_cannot_be_subtracted() {
         let a = FiniteField::new(2, 5);
         let b = FiniteField::new(1, 7);
@@ -180,7 +189,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected="Cannot multiply two numbers in different fields 5 and 7.")]
+    #[should_panic(expected = "Cannot multiply two numbers in different fields 5 and 7.")]
     fn field_elements_of_different_fields_cannot_be_multiplied() {
         let a = FiniteField::new(2, 5);
         let b = FiniteField::new(3, 7);
@@ -197,5 +206,15 @@ mod tests {
 
         let expected = FiniteField::new(1, 5);
         assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn exponent_of_a_field_can_be_calculated() {
+        let a = FiniteField::new(2, 3);
+
+        let result = FiniteField::pow(a.clone(), 3);
+
+        let expected = FiniteField::new(2, 3);
+        assert_eq!(a, expected);
     }
 }
