@@ -32,8 +32,22 @@ impl FiniteField {
         }
     }
 
-    fn pow(self, exp: u32) -> Self {
-        let num = usize::pow(self.num, exp);
+    fn pow(self, mut exp: i32) -> Self {
+        /*
+            Fun Fact: If you raise any element of the field
+            with p-1, it'll be equal to 1.
+
+            1^(p – 1) = 2^(p – 1) = 3^(p – 1) = 4^(p – 1) = ... = (p – 1)^(p – 1) = 1
+
+            It is represented by a^(p-1) = 1
+         */
+
+        while exp < 0 {
+            // a^(-exp) = a^(-exp) * 1 = a^(-exp) * a^(p-1)
+            exp += self.prime as i32 - 1
+        };
+
+        let num = usize::pow(self.num, exp as u32);
 
         FiniteField::new(
             num % self.prime,
@@ -108,10 +122,7 @@ impl Div for FiniteField {
         }
 
         // a / b = a * (1/b) = a * b^(-1)
-        // Also, b^(-1) = b^(-1) * 1 = b^(-1) * b^(p-1) = b^(p-2)
-        // a / b = a * b^(p-2)
-        let exp = (rhs.prime - 2) as u32;
-        let rhs_inverse = FiniteField::pow(rhs.clone(), exp);
+        let rhs_inverse = FiniteField::pow(rhs.clone(), -1);
 
         self * rhs_inverse
     }
@@ -246,6 +257,16 @@ mod tests {
         let result = FiniteField::pow(a.clone(), 3);
 
         let expected = FiniteField::new(2, 3);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn negative_exponent_of_a_field_can_be_calculated() {
+        let a = FiniteField::new(7, 13);
+
+        let result = FiniteField::pow(a.clone(), -3);
+
+        let expected = FiniteField::new(8, 13);
         assert_eq!(result, expected);
     }
 
