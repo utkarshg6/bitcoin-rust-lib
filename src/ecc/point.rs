@@ -1,6 +1,8 @@
 // The elliptic curve (y^2 = x^3 + ax + b) used in Bitcoin is called secp256k1 and it uses the particular equation:
 // y^2 = x^3 + 7
 
+use std::fmt::{Display, Formatter};
+
 #[derive(Debug, Eq, PartialEq)]
 struct Point {
     x: isize,
@@ -11,7 +13,9 @@ struct Point {
 
 impl Point {
     fn new(x: isize, y: isize, a: isize, b: isize) -> Self {
-        if y ^ 2 != x ^ 3 + a * x + b {
+        let lhs = isize::pow(y, 2);
+        let rhs = isize::pow(x, 3) + (a * x) + b;
+        if lhs != rhs {
             panic!("({x}, {y}) is not on the curve.")
         }
 
@@ -21,6 +25,12 @@ impl Point {
             a,
             b,
         }
+    }
+}
+
+impl Display for Point {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Point({}, {})_{}_{}", self.x, self.y, self.a, self.b)
     }
 }
 
@@ -44,6 +54,15 @@ mod tests {
     #[should_panic(expected = "(-1, 1) is not on the curve.")]
     fn panics_when_point_is_not_on_the_curve() {
         let _point = Point::new(-1, 1, 0, 3);
+    }
+
+    #[test]
+    fn point_implements_display() {
+        let point = Point::new(1, 2, 0, 3);
+
+        let subject = format!("{}", point);
+
+        assert_eq!(&subject, "Point(1, 2)_0_3")
     }
 }
 
