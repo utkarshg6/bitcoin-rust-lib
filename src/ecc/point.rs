@@ -1,12 +1,12 @@
+use std::fmt::{Display, Formatter};
+use std::ops::Add;
+
 // The elliptic curve (y^2 = x^3 + ax + b) used in Bitcoin is called secp256k1 and it uses the particular equation:
 // y^2 = x^3 + 7
-
-use std::fmt::{Display, Formatter};
-
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone, Copy)]
 struct Point {
-    x_opt: Option<isize>,
     // None for both x and y represents point on Infinity
+    x_opt: Option<isize>,
     y_opt: Option<isize>,
     a: isize,
     b: isize,
@@ -41,8 +41,26 @@ impl Display for Point {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match (self.x_opt, self.y_opt) {
             (Some(x), Some(y)) => write!(f, "Point({}, {})_{}_{}", x, y, self.a, self.b),
-            (None, None) => write!(f, "Point(Infinity)"),
+            (None, None) => write!(f, "Point(Infinity)_{}_{}", self.a, self.b),
             (_, _) => panic!("Both x and y coordinate should be either Some or None")
+        }
+    }
+}
+
+impl Add for Point {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        if self.a != rhs.a || self.b != rhs.b {
+            panic!("{}, {} are not on the same curve.", self, rhs);
+        }
+
+        if self.x_opt.is_none() {
+            return rhs;
+        } else if rhs.x_opt.is_none() {
+            return self;
+        } else {
+            todo!()
         }
     }
 }
@@ -101,7 +119,25 @@ mod tests {
             a: 0,
             b: 3,
         });
-        assert_eq!(&point_display, "Point(Infinity)")
+        assert_eq!(&point_display, "Point(Infinity)_0_3")
+    }
+
+    #[test]
+    fn point_satisfies_identity() {
+        let point = Point::new(Some(1), Some(2), 0, 3);
+        let infinity = Point::new(None, None, 0, 3);
+
+        assert_eq!(point + infinity, point);
+        assert_eq!(infinity + point, point);
+    }
+
+    #[test]
+    #[should_panic(expected = "Point(1, 2)_0_3, Point(-1, 1)_5_7 are not on the same curve.")]
+    fn points_on_different_curve_cannot_be_added() {
+        let point_a = Point::new(Some(1), Some(2), 0, 3);
+        let point_b = Point::new(Some(-1), Some(1), 5, 7);
+
+        let _addition = point_a + point_b;
     }
 }
 
